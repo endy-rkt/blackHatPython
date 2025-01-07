@@ -1,3 +1,5 @@
+#!/bin/python3
+
 """
 subject: Recreate netcat (administration swiss knife tool)
 
@@ -17,102 +19,103 @@ For this project, i want to implement just some type of netcat:
 import sys
 import subprocess
 
-def	parser():
-	argvLen = len(sys.argv)
-	input = []
-	for i in range(1, argvLen):
-		input.append(sys.argv[i])
-	return input
-
-def	isOpt(arg):
-	argList = ""
-	p = 0
-	t = 0
-	c = 0
-	e = 0
-	if arg[0] != "-":
-		return (0)
+def	isOption(arg):
+	if (arg[0] != "-"):
+		return (False)
+	isPTEC = 0
 	for char in arg[1:]:
-		if char not in "tcnvlpe":
-			print("Option not supported!")
-			sys.exit(0)
-		if char not in argList:
-			argList += ""			
+		if char not in "lvptec":
+			print("Error: option not supported")
+			sys.exit(1)
+		if char in "ptec":
+			isPTEC += 1
+		if isPTEC > 1:
+			print("Error: invalid option")
+			sys.exit(1)
+	return (True)
+
+def	parser():
+	argLen = len(sys.argv)
+	if argLen < 3:
+		print("Error: insufficient number of arguments")
+		sys.exit(1)
+	args = {
+		"LISTENNING":False,
+		"VERBOSE":False,
+		"PORT":"",
+		"IP":"",
+		"CMD":""
+	}
+	i = 1
+	while i < argLen:
+		arg = sys.argv[i]
+		if isOption(arg):
+			if "l" in arg:
+				if args["LISTENNING"] == True:
+					print("Error: repetitive argument")
+					sys.exit(1)
+				args["LISTENNING"] = True
+			if "v" in arg:
+				if args["VERBOSE"] == True:
+					print("Error: repetitive argument")
+					sys.exit(1)
+				args["VERBOSE"] = True
+			if "p" in arg:
+				if args["PORT"] != "":
+					print("Error: repetitive argument")
+					sys.exit(1)
+				if i + 1 >= argLen:
+					print("Error: Insufficient number of argument")
+					sys.exit(1)
+				args["PORT"] = sys.argv[i + 1]
+				i += 1
+			elif "t" in arg:
+				if args["IP"] != "":
+					print("Error: repetitive argument")
+					sys.exit(1)
+				if i + 1 >= argLen:
+					print("Error: Insufficient number of argument")
+					sys.exit(1)
+				args["IP"] = sys.argv[i + 1]
+				i += 1
+			elif "c" in arg or "e" in arg:
+				if args["CMD"] != "":
+					print("Error: repetitive argument")
+					sys.exit(1)
+				if i + 1 >= argLen:
+					print("Error: Insufficient number of argument")
+					sys.exit(1)
+				args["CMD"] = sys.argv[i + 1]
+				i += 1
 		else:
-			print("Invalid Option!")
-			sys.exit(0)
-		if char in "tcep" and (p or t or e or c):
-			print("Invalid Option!")
-			sys.exit(0)
-		p += 1 if char == "p" else  0
-		t += 1 if char == "t" else  0
-		e += 1 if char == "e" else  0
-		c += 1 if char == "c" else  0
-	return (1)
+			if args["IP"] == "":
+				args["IP"] = arg
+			if args["PORT"] == "":
+				args["PORT"] = arg
+		i += 1
+	return (args)
 
-def	checkInputErr(input):
-	inputLen = len(input)
-	pos = 0
-	VERBOSE = False
-	LISTENNING = False
-	CMD = False
-	argList = "" 
-	for arg in input:
-		inputLen -= 1
-		if isOpt(arg):
-			if "t" in arg or "c" in arg or "e" in arg or "p" in arg:
-				#no arg after tcep opt
-				if inputLen == 0:
-					print("Invalid Option!")
-					sys.exit(0)
-				#option after tcep
-				if isOpt(input[pos + 1]):
-					print("Invalid Option!")
-					sys.exit(0)
-			#check is arg is already there
-			for char in arg[1:]:
-				if char in argList:
-					print("Invalid Option!")
-					sys.exit(0)
-				argList += char
-	if "e" in argList and "c" in argList:
-		print("Invalid Option!")
-		sys.exit(0)
-	if "v" in argList:
-		VERBOSE = True
-	if "l" in argList:
-		LISTENNING = True
-	if "c" in argList or "e" in argList:
-		CMD = True
-	return (VERBOSE, LISTENNING, CMD)
+def checkArgs(args):
+	if args["PORT"] == "" and args["IP"] == "":
+		print("Error: No port and IP")
+		sys.exit(1)
+	if args["LISTENNING"] and args["PORT"] == "":
+		print("Error: no port to listen on")
+		sys.exit(1)
 
-def	getArg(input):
-	PORT = ""
-	IP = ""
-	CMD = ""
-	# FILE = ""
-	for i in range(len(input)):
-		if "t" in input[i]:
-			IP = input[i + 1]
-		elif "p" in input[i]:
-			PORT = input[i + 1]
-		elif "e" in input[i] or "c" in input[i]:
-			CMD = input[i + 1]
-		else:
-			if len(IP) == 0:
-				IP = input[i]
-			elif len(PORT) == 0:
-				PORT = input[i]
-			elif len(CMD) == 0:
-				CMD = input[i]
-			else:
-				print(f"IP={IP} PORT={PORT} CMD={CMD}")
-				print("Invalid Option!")
-				sys.exit(0)
-	print(f"IP={IP} PORT={PORT} CMD={CMD}")
-	
+def	execute_cmd():
+	print("execute cmd")
 
-input = parser()
-print(input)
-print(checkInputErr(input))
-print(getArg(input))
+def	server():
+	print("server")
+
+def client():
+	print("client")
+
+def main():
+	print("main")
+
+if __name__ == "__main__":
+	args = parser()
+	print(args)
+	checkArgs(args)
