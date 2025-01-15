@@ -5,7 +5,6 @@ def	handle_client(client_socket):
 	while True:
 		#this need to be in try catch
 		request = client_socket.recv(1024).decode('utf-8')
-
 		print(request)
 		msg = input()
 		client_socket.send(msg.encode("utf-8"))

@@ -1,3 +1,4 @@
+import sys
 import socket
 
 def link(hostIP, port):
@@ -13,11 +14,17 @@ def link(hostIP, port):
 		client.send(clientMsg.encode('utf-8'))
 
 		# Receive a Response
-		response = client.recv(4096)
-		print(f"{response.decode('utf-8')}")
 		if (clientMsg.lower() == "quit"):
 			print("Quitting ...")
 			break
+		try:
+			client.settimeout(1)  # Optional timeout to check for server response
+			response = client.recv(4096)
+			if response:  # Only print if there's actual data
+				print(f"Server response: {response.decode('utf-8')}")
+		except socket.timeout:
+			pass  # Time
 
 	# Close the Connection
 	client.close()
+

