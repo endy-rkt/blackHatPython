@@ -20,7 +20,7 @@ def server_loop(args):
     while True:
         #client socket
         client_socket, addr = server.accept()
-        print("[==>] Received incoming connection from {addr[0]}:{addr[1]}")
+        print(f"[==>] Received incoming connection from {addr[0]}:{addr[1]}")
 
         proxy_thread = threading.Thread(target=proxy_handler, args=(client_socket, args))
         proxy_thread.start()
@@ -32,12 +32,12 @@ def hexdump(src, length=16):
 
     for i in range(0, len(src), length):
         s = src[i:i+length]
-        hexa = b' '.join([b"%0*X" % (digits, ord(x)) for x in s])
-        text = b''.join([x if 0x20 <= ord(x) < 0x7F else b'.' for x in s])
-        result.append(
-            b"%04X  %-*s  %s" % (i, length * (digits + 1), hexa, text)
-        )
-    print(b'\n'.join(result))
+        hexa = ' '.join(f"{x:0{digits}X}" for x in s)
+        text = ''.join(chr(x) if 0x20 <= x < 0x7F else '.' for x in s)
+        result.append(f"{i:04X}  {hexa:<{length * (digits + 1)}}  {text}")
+
+    print("\n".join(result))
+
 
 def receive_from(connection):
     buffer = b''
@@ -77,7 +77,7 @@ def proxy_handler(client_socket, args):
 
     #receive data from the remote end if necessary
     if args.receive_first:
-        remote_buffer = receive_from(args.remote_socket)
+        remote_buffer = receive_from(remote_socket)
         hexdump(remote_buffer)
 
         #send it to our response handler
@@ -86,7 +86,7 @@ def proxy_handler(client_socket, args):
         #if we have data to send to our local client, send it
         if len(remote_buffer):
             print(f"[<==] Sending {len(remote_buffer)} bytes to localhost.")
-            client_socket.send(remote_buffer.encode("utf-8"))
+            client_socket.send(remote_buffer)
         
         #now lets loop and read from local,
         #send to remote, send to local
@@ -103,7 +103,7 @@ def proxy_handler(client_socket, args):
                 local_buffer = request_handler(local_buffer)
 
                 #send off the data to the remote host
-                remote_socket.send(local_buffer.encode("utf-8"))
+                remote_socket.send(local_buffer)
                 print("[==>] Sent to remote.")
             #receive back the response
             remote_buffer  = receive_from(remote_socket)
