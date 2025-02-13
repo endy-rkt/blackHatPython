@@ -9,8 +9,8 @@ def server_loop(args):
     #main server socket
     server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     try:
-        server.bind((args.loclhost, int(args.localport)))
-    except:
+        server.bind((args.localhost, int(args.localport)))
+    except socket.error as exc:
         print(f"Failed to listen on {args.localhost}:{args.localport}")
         sys.exit(0)
     
@@ -25,6 +25,49 @@ def server_loop(args):
         proxy_thread = threading.Thread(target=proxy_handler, args=(client_socket, args))
         proxy_thread.start()
 
+
+def hexdump(src, length=16):
+    result = []
+    digits = 4 if isinstance(src, str) else 2
+
+    for i in range(0, len(src), length):
+        s = src[i:i+length]
+        hexa = b' '.join([b"%0*X" % (digits, ord(x)) for x in s])
+        text = b''.join([x if 0x20 <= ord(x) < 0x7F else b'.' for x in s])
+        result.append(
+            b"%04X  %-*s  %s" % (i, length * (digits + 1), hexa, text)
+        )
+    print(b'\n'.join(result))
+
+def receive_from(connection):
+    buffer = b''
+
+    # We set a 2 second time-out. Depending on your target this may need
+    # to be adjusted
+    connection.settimeout(2)
+
+    try:
+        # keep reading into the buffer until there's no more data or we
+        # time-out
+        while True:
+            data = connection.recv(4096)
+            if not data:
+                break
+            buffer += data
+    
+    except TimeoutError:
+        pass
+    return buffer
+
+#modify any requests destined for the remote host
+def request_handler(buffer):
+    #we perform packet modification here
+    return (buffer)
+
+#modify any responses destined for the local host
+def response_handler(buffer):
+    #we perform packet modification here
+    return buffer
 
 def proxy_handler(client_socket, args):
     #remote host socket 
@@ -83,7 +126,6 @@ def proxy_handler(client_socket, args):
                 remote_socket.close()
                 print("[*] No more data. Closing connections.")
                 break
-
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
