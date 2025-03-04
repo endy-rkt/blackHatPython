@@ -6,7 +6,7 @@ import threading
 import subprocess
 import sys
 
-def ssh_command(ip, user, passwd, cmd, _port=22):
+def ssh_cliend_cmd(ip, user, passwd, cmd, _port=22):
 	ssh_client = paramiko.SSHClient()
 	ssh_client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
 	try:
@@ -34,11 +34,11 @@ class Server(paramiko.ServerInterface):
 		self.event = threading.Event()
 	def check_channel_request(self, kind, chanid):
 		if kind == "session":
-			return (paramiko.OPEN_SUCCEDED) #to verify
+			return (paramiko.OPEN_SUCCEEDED) #to verify
 		return (paramiko.OPEN_FAILED_ADMINITRATIVELY_PROHIBITED) # to verify
 	def check_auth_password(self, username, password):
 		if (username == "debian") and (password == "debian"):
-			return (paramiko.AUTH_SUCCESSUL) #to verify
+			return (paramiko.AUTH_SUCCESSFUL) #to verify
 		return (paramiko.AUTH_FAILED)
 
 if __name__ == "__main__":
