@@ -2,7 +2,6 @@
 
 import os
 import socket
-import struct
 
 # Host to listen on
 host = "0.0.0.0"
@@ -17,7 +16,7 @@ else:  # Linux/Mac
 sniffer = socket.socket(socket.AF_INET, socket.SOCK_RAW, socket_protocol)
 
 # Bind to the host
-sniffer.bind((host, 0))
+sniffer.bind((host, 0)) #still work if remove this
 
 # Include IP headers in capture
 sniffer.setsockopt(socket.IPPROTO_IP, socket.IP_HDRINCL, 1)
@@ -29,8 +28,9 @@ if os.name == "nt":
 
 # Read in a single packet
 print("Listening for incoming packets...")
-packet, addr = sniffer.recvfrom(65565)
-print(f"Received Packet from {addr}: {packet}")
+for i in range(42):
+    packet, addr = sniffer.recvfrom(65565)
+    print(f"Received Packet from {addr}: {packet}")
 
 # Disable promiscuous mode on Windows after capture
 if os.name == "nt":
